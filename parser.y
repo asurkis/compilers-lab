@@ -49,12 +49,11 @@ variable_list: IDENTIFIER ';'
 operator_list: operator
   | operator operator_list
   ;
-// operator: assignment_operator | complex_operator | block_operator;
-operator: operator_ifelse_child | operator_not_ifelse_child;
-operator_ifelse_child: assignment_operator | operator_if_else | operator_loop_ifelse_child | block_operator;
-operator_not_ifelse_child: operator_loop_not_ifelse_child | operator_if_noelse;
+operator: anywhere_operator | operator_if | operator_loop;
+anywhere_operator: operator_assign | block_operator;
+if_child_operator: anywhere_operator | if_child_operator_if | if_child_operator_loop;
 block_operator: BEGIN operator_list END;
-assignment_operator: IDENTIFIER ASSIGN expr ';';
+operator_assign: IDENTIFIER ASSIGN expr ';';
 expr: unary_operator subexpr_pr0
   | subexpr_pr0;
 // subexpr: '(' expr ')'
@@ -83,13 +82,13 @@ operand: IDENTIFIER | CONSTANT;
 // operator_if: IF '(' expr ')' operator
 //   | IF '(' expr ')' operator ELSE operator
 //   ;
-// operator_if: operator_if_else | operator_if_noelse;
-operator_if_else: IF '(' expr ')' operator_ifelse_child ELSE operator;
-operator_if_noelse: IF '(' expr ')' operator;
-// operator_loop: operator_loop_ifelse_child | operator_loop_not_ifelse_child;
-operator_loop_ifelse_child: WHILE expr DO operator_ifelse_child;
-operator_loop_not_ifelse_child: WHILE expr DO operator_not_ifelse_child;
-// identifier: LETTER identifier | LETTER;
-// constant: DIGIT constant | DIGIT;
+if_header: IF '(' expr ')';
+operator_if: if_header operator
+  | if_header if_child_operator ELSE operator;
+if_child_operator_if: if_header if_child_operator ELSE if_child_operator;
+
+loop_header: WHILE expr DO;
+operator_loop: loop_header operator;
+if_child_operator_loop: loop_header if_child_operator;
 
 %%
