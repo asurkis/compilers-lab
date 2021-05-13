@@ -23,12 +23,14 @@ union ast_data {
   } root;
 };
 
-struct print_context {};
-struct translate_context {};
+struct translate_context {
+  int tmpvar_counter;
+  int label_counter;
+};
 
 struct ast_metatable {
   void (*free_node)(struct ast *);
-  void (*traverse_print)(struct ast *, struct print_context *);
+  void (*traverse_print)(struct ast *, int);
   void (*traverse_translate)(struct ast *, struct translate_context *);
   enum ast_type type;
 };
@@ -41,17 +43,14 @@ static inline void ast_free(struct ast *node) {
   node->metatable->free_node(node);
 }
 
-static inline void ast_traverse_print(struct ast *node,
-                                      struct print_context *context) {
-  node->metatable->traverse_print(node, context);
+static inline void ast_traverse_print(struct ast *node, int indent) {
+  node->metatable->traverse_print(node, indent);
 }
 
 static inline void ast_traverse_translate(struct ast *node,
                                           struct translate_context *context) {
   node->metatable->traverse_translate(node, context);
 }
-
-#define AST_CAST(ast, type) ((type *)((char *)ast - offsetof(type, base)))
 
 #define AST_DECLARE_TYPE_1(type, arg1)                                         \
   struct ast_##type {                                                          \
