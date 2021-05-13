@@ -23,35 +23,74 @@ union ast_data {
   } root;
 };
 
-struct ast {
-  union ast_data data;
+struct print_context {};
+struct translate_context {};
+
+struct ast_metatable {
+  void (*free_node)(struct ast *);
+  void (*traverse_print)(struct ast *, struct print_context *);
+  void (*traverse_translate)(struct ast *, struct translate_context *);
   enum ast_type type;
 };
 
-struct ast *ast_new(enum ast_type type, union ast_data data);
-void ast_free(struct ast *ast);
+struct ast {
+  struct ast_metatable *metatable;
+};
 
-struct ast *ast_new_root            (struct ast *variable_declaration, struct ast *computation_description);
-struct ast *ast_new_variable_list   (char const *name, struct ast *next);
-struct ast *ast_new_operator_list   (struct ast *operator_, struct ast *next);
-struct ast *ast_new_assign          (char const *name, struct ast *expr);
-struct ast *ast_new_unary_operator  (int type, struct ast *expr);
-struct ast *ast_new_binary_operator (int type, struct ast *expr1, struct ast *expr2);
-struct ast *ast_new_identifier      (char const *name);
-struct ast *ast_new_constant        (int value);
-struct ast *ast_new_if              (struct ast *condition, struct ast *if_true, struct ast *if_false);
-struct ast *ast_new_loop            (struct ast *condition, struct ast *while_true);
+static inline void ast_free(struct ast *node) {
+  node->metatable->free_node(node);
+}
 
-void ast_free_root            (struct ast *node);
-void ast_free_variable_list   (struct ast *node);
-void ast_free_operator_list   (struct ast *node);
-void ast_free_assign          (struct ast *node);
-void ast_free_unary_operator  (struct ast *node);
-void ast_free_binary_operator (struct ast *node);
-void ast_free_identifier      (struct ast *node);
-void ast_free_constant        (struct ast *node);
-void ast_free_if              (struct ast *node);
-void ast_free_loop            (struct ast *node);
+static inline void ast_traverse_print(struct ast *node,
+                                      struct print_context *context) {
+  node->metatable->traverse_print(node, context);
+}
+
+static inline void ast_traverse_translate(struct ast *node,
+                                          struct translate_context *context) {
+  node->metatable->traverse_translate(node, context);
+}
+
+#define AST_CAST(ast, type) ((type *)((char *)ast - offsetof(type, base)))
+
+#define AST_DECLARE_TYPE_1(type, arg1)                                         \
+  struct ast_##type {                                                          \
+    struct ast base;                                                           \
+    arg1;                                                                      \
+  };                                                                           \
+  struct ast *ast_new_##type(arg1);
+
+#define AST_DECLARE_TYPE_2(type, arg1, arg2)                                   \
+  struct ast_##type {                                                          \
+    struct ast base;                                                           \
+    arg1;                                                                      \
+    arg2;                                                                      \
+  };                                                                           \
+  struct ast *ast_new_##type(arg1, arg2);
+
+#define AST_DECLARE_TYPE_3(type, arg1, arg2, arg3)                             \
+  struct ast_##type {                                                          \
+    struct ast base;                                                           \
+    arg1;                                                                      \
+    arg2;                                                                      \
+    arg3;                                                                      \
+  };                                                                           \
+  struct ast *ast_new_##type(arg1, arg2, arg3);
+
+AST_DECLARE_TYPE_2(root, struct ast *variable_declaration,
+                   struct ast *computation_description);
+AST_DECLARE_TYPE_2(variable_list, char const *name, struct ast *next);
+AST_DECLARE_TYPE_2(operator_list, struct ast *op, struct ast *next);
+
+AST_DECLARE_TYPE_2(assign, char const *name, struct ast *expr);
+AST_DECLARE_TYPE_2(unary_operator, struct ast *expr, int type);
+AST_DECLARE_TYPE_3(binary_operator, struct ast *expr1, struct ast *expr2,
+                   int type);
+AST_DECLARE_TYPE_1(identifier, char const *name);
+AST_DECLARE_TYPE_1(constant, int value);
+AST_DECLARE_TYPE_3(if, struct ast *condition, struct ast *if_true,
+                   struct ast *if_false);
+AST_DECLARE_TYPE_2(loop, struct ast *condition, struct ast *while_true);
 
 void yyerror(char *s);
 

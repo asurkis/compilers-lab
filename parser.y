@@ -92,11 +92,11 @@ if_child_operator:
   if_child_operator_loop;
 operator_assign: T_IDENTIFIER T_ASSIGN expr ';' { $$ = ast_new_assign($1, $3); };
 
-expr: subexpr_pr1 | unary_operator subexpr_pr1 { $$ = ast_new_unary_operator($1, $2); };
-subexpr_pr1: subexpr_pr2 | subexpr_pr2 binary_operator_pr1 subexpr_pr1 { $$ = ast_new_binary_operator($2, $1, $3); };
-subexpr_pr2: subexpr_pr3 | subexpr_pr3 binary_operator_pr2 subexpr_pr2 { $$ = ast_new_binary_operator($2, $1, $3); };
-subexpr_pr3: subexpr_pr4 | subexpr_pr4 binary_operator_pr3 subexpr_pr3 { $$ = ast_new_binary_operator($2, $1, $3); };
-subexpr_pr4: subexpr_pr5 | subexpr_pr5 binary_operator_pr4 subexpr_pr4 { $$ = ast_new_binary_operator($2, $1, $3); };
+expr: subexpr_pr1 | unary_operator subexpr_pr1 { $$ = ast_new_unary_operator($2, $1); };
+subexpr_pr1: subexpr_pr2 | subexpr_pr2 binary_operator_pr1 subexpr_pr1 { $$ = ast_new_binary_operator($1, $3, $2); };
+subexpr_pr2: subexpr_pr3 | subexpr_pr3 binary_operator_pr2 subexpr_pr2 { $$ = ast_new_binary_operator($1, $3, $2); };
+subexpr_pr3: subexpr_pr4 | subexpr_pr4 binary_operator_pr3 subexpr_pr3 { $$ = ast_new_binary_operator($1, $3, $2); };
+subexpr_pr4: subexpr_pr5 | subexpr_pr5 binary_operator_pr4 subexpr_pr4 { $$ = ast_new_binary_operator($1, $3, $2); };
 subexpr_pr5: operand | '(' expr ')' { $$ = $2; };
 unary_operator: '-' { $$ = '-'; };
 binary_operator_pr1:
