@@ -1,23 +1,24 @@
 %{
-#include <parser.tab.h>
+#include "ast.h"
+#include "parser.tab.h"
 %}
 
 %%
 
-"+"|"-"|"*"|"/"|">"|"<"|"=" { return yytext[0]; }
-":=" { return ASSIGN; }
-"Begin" { return BEGIN; }
-"End" { return END; }
-"Var" { return VAR; }
-"AND" { return AND; }
-"OR" { return OR; }
-"XOR" { return XOR; }
-"IF" { return IF; }
-"ELSE" { return ELSE; }
-"WHILE" { return WHILE; }
-"DO" { return DO; }
-[a-zA-Z]+ { yylvalue.identifier = yytext; return IDENTIFIER; }
-[0-9]+ { yylvalue.constant = atoi(yytext); return CONSTANT; }
+[-+*/>=<]  { return yytext[0] ; }
+":="       { return T_ASSIGN  ; }
+"Begin"    { return T_BEGIN   ; }
+"End"      { return T_END     ; }
+"Var"      { return T_VAR     ; }
+"AND"      { return T_AND     ; }
+"OR"       { return T_OR      ; }
+"XOR"      { return T_XOR     ; }
+"IF"       { return T_IF      ; }
+"ELSE"     { return T_ELSE    ; }
+"WHILE"    { return T_WHILE   ; }
+"DO"       { return T_DO      ; }
+[a-zA-Z]+  { yylval.identifier = yytext;     return T_IDENTIFIER; }
+[0-9]+     { yylval.constant = atoi(yytext); return T_CONSTANT;   }
 [ \t\n] {}
 
 %%
