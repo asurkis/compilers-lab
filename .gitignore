@@ -1,0 +1,7 @@
+*
+!.gitignore
+!ast.c
+!ast.h
+!lexer.l
+!parser.y
+!Makefile
