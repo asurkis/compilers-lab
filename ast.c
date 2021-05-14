@@ -85,24 +85,24 @@ static void ast_traverse_print_unary_operator(struct ast *node, int indent) {
   ast_traverse_print(self->expr, indent + 1);
 }
 
-void ast_traverse_print_binary_operator(struct ast *node, int indent) {
+static void ast_traverse_print_binary_operator(struct ast *node, int indent) {
   TRAVERSE_PRINT_HEADER(binary_operator);
   printf("binary %s\n", operator_type_str(self->type));
   ast_traverse_print(self->expr1, indent + 1);
   ast_traverse_print(self->expr2, indent + 1);
 }
 
-void ast_traverse_print_identifier(struct ast *node, int indent) {
+static void ast_traverse_print_identifier(struct ast *node, int indent) {
   TRAVERSE_PRINT_HEADER(identifier);
   printf("identifier [%s]\n", self->name);
 }
 
-void ast_traverse_print_constant(struct ast *node, int indent) {
+static void ast_traverse_print_constant(struct ast *node, int indent) {
   TRAVERSE_PRINT_HEADER(constant);
   printf("constant [%d]\n", self->value);
 }
 
-void ast_traverse_print_if(struct ast *node, int indent) {
+static void ast_traverse_print_if(struct ast *node, int indent) {
   TRAVERSE_PRINT_HEADER(if);
   printf("if (\n");
   ast_traverse_print(self->condition, indent + 1);
@@ -121,7 +121,7 @@ void ast_traverse_print_if(struct ast *node, int indent) {
   printf("}\n");
 }
 
-void ast_traverse_print_loop(struct ast *node, int indent) {
+static void ast_traverse_print_loop(struct ast *node, int indent) {
   TRAVERSE_PRINT_HEADER(loop);
   printf("while (\n");
   ast_traverse_print(self->condition, indent + 1);
@@ -134,70 +134,122 @@ void ast_traverse_print_loop(struct ast *node, int indent) {
   printf("}\n");
 }
 
-void ast_traverse_translate_root(struct ast *node,
+static void ast_traverse_translate_root(struct ast *node,
                                  struct translate_context *context) {
   AST_CAST_SELF(root);
 }
 
-void ast_traverse_translate_variable_list(struct ast *node,
+static void ast_traverse_translate_variable_list(struct ast *node,
                                           struct translate_context *context) {
   AST_CAST_SELF(variable_list);
 }
 
-void ast_traverse_translate_operator_list(struct ast *node,
+static void ast_traverse_translate_operator_list(struct ast *node,
                                           struct translate_context *context) {
   AST_CAST_SELF(operator_list);
 }
 
-void ast_traverse_translate_assign(struct ast *node,
+static void ast_traverse_translate_assign(struct ast *node,
                                    struct translate_context *context) {
   AST_CAST_SELF(assign);
 }
 
-void ast_traverse_translate_unary_operator(struct ast *node,
+static void ast_traverse_translate_unary_operator(struct ast *node,
                                            struct translate_context *context) {
   AST_CAST_SELF(unary_operator);
 }
 
-void ast_traverse_translate_binary_operator(struct ast *node,
+static void ast_traverse_translate_binary_operator(struct ast *node,
                                             struct translate_context *context) {
   AST_CAST_SELF(binary_operator);
 }
 
-void ast_traverse_translate_identifier(struct ast *node,
+static void ast_traverse_translate_identifier(struct ast *node,
                                        struct translate_context *context) {
   AST_CAST_SELF(identifier);
 }
 
-void ast_traverse_translate_constant(struct ast *node,
+static void ast_traverse_translate_constant(struct ast *node,
                                      struct translate_context *context) {
   AST_CAST_SELF(constant);
 }
 
-void ast_traverse_translate_if(struct ast *node,
+static void ast_traverse_translate_if(struct ast *node,
                                struct translate_context *context) {
   AST_CAST_SELF(if);
 }
 
-void ast_traverse_translate_loop(struct ast *node,
+static void ast_traverse_translate_loop(struct ast *node,
                                  struct translate_context *context) {
   AST_CAST_SELF(loop);
 }
 
-void ast_free_root(struct ast *node) { AST_CAST_SELF(root); }
-void ast_free_variable_list(struct ast *node) { AST_CAST_SELF(variable_list); }
-void ast_free_operator_list(struct ast *node) { AST_CAST_SELF(operator_list); }
-void ast_free_assign(struct ast *node) { AST_CAST_SELF(assign); }
-void ast_free_unary_operator(struct ast *node) {
+static void ast_free_root(struct ast *node) {
+  AST_CAST_SELF(root);
+  ast_free(self->variable_declaration);
+  ast_free(self->computation_description);
+  free(self);
+}
+
+static void ast_free_variable_list(struct ast *node) {
+  AST_CAST_SELF(variable_list);
+  free(self->name);
+  ast_free(self->next);
+  free(self);
+}
+
+static void ast_free_operator_list(struct ast *node) {
+  AST_CAST_SELF(operator_list);
+  ast_free(self->op);
+  ast_free(self->next);
+  free(self);
+}
+
+static void ast_free_assign(struct ast *node) {
+  AST_CAST_SELF(assign);
+  free(self->name);
+  ast_free(self->expr);
+  free(self);
+}
+
+static void ast_free_unary_operator(struct ast *node) {
   AST_CAST_SELF(unary_operator);
+  ast_free(self->expr);
+  free(self);
 }
-void ast_free_binary_operator(struct ast *node) {
+
+static void ast_free_binary_operator(struct ast *node) {
   AST_CAST_SELF(binary_operator);
+  ast_free(self->expr1);
+  ast_free(self->expr2);
+  free(self);
 }
-void ast_free_identifier(struct ast *node) { AST_CAST_SELF(identifier); }
-void ast_free_constant(struct ast *node) { AST_CAST_SELF(constant); }
-void ast_free_if(struct ast *node) { AST_CAST_SELF(if); }
-void ast_free_loop(struct ast *node) { AST_CAST_SELF(loop); }
+
+static void ast_free_identifier(struct ast *node) {
+  AST_CAST_SELF(identifier);
+  free(self->name);
+  free(self);
+}
+
+static void ast_free_constant(struct ast *node) {
+  AST_CAST_SELF(constant);
+  free(self);
+}
+
+static void ast_free_if(struct ast *node) {
+  AST_CAST_SELF(if);
+  ast_free(self->condition);
+  ast_free(self->if_true);
+  ast_free(self->if_false);
+  free(self);
+}
+
+static void ast_free_loop(struct ast *node) {
+  AST_CAST_SELF(loop);
+  ast_free(self->condition);
+  ast_free(self->while_true);
+  free(self);
+}
 
 #define AST_DEFINE_TYPE_1(type, type_enum, type1, arg1)                        \
   static struct ast_metatable ast_metatable_##type = {                         \
@@ -253,17 +305,17 @@ void ast_free_loop(struct ast *node) { AST_CAST_SELF(loop); }
 
 AST_DEFINE_TYPE_2(root, AST_ROOT, struct ast *, variable_declaration,
                   struct ast *, computation_description);
-AST_DEFINE_TYPE_2(variable_list, AST_VARIABLE_LIST, char const *, name,
-                  struct ast *, next);
+AST_DEFINE_TYPE_2(variable_list, AST_VARIABLE_LIST, char *, name, struct ast *,
+                  next);
 AST_DEFINE_TYPE_2(operator_list, AST_OPERATOR_LIST, struct ast *, op,
                   struct ast *, next);
 
-AST_DEFINE_TYPE_2(assign, AST_ASSIGN, char const *, name, struct ast *, expr);
+AST_DEFINE_TYPE_2(assign, AST_ASSIGN, char *, name, struct ast *, expr);
 AST_DEFINE_TYPE_2(unary_operator, AST_UNARY_OPERATOR, struct ast *, expr, int,
                   type);
 AST_DEFINE_TYPE_3(binary_operator, AST_BINARY_OPERATOR, struct ast *, expr1,
                   struct ast *, expr2, int, type);
-AST_DEFINE_TYPE_1(identifier, AST_IDENTIFIER, char const *, name);
+AST_DEFINE_TYPE_1(identifier, AST_IDENTIFIER, char *, name);
 AST_DEFINE_TYPE_1(constant, AST_CONSTANT, int, value);
 AST_DEFINE_TYPE_3(if, AST_IF, struct ast *, condition, struct ast *, if_true,
                   struct ast *, if_false);
@@ -279,5 +331,6 @@ int main() {
   if (retcode)
     return retcode;
   ast_traverse_print(result, 0);
+  ast_free(result);
   return 0;
 }

@@ -41,7 +41,8 @@ struct ast {
 };
 
 static inline void ast_free(struct ast *node) {
-  node->metatable->free_node(node);
+  if (node)
+    node->metatable->free_node(node);
 }
 
 static inline void ast_traverse_print(struct ast *node, int indent) {
@@ -79,14 +80,14 @@ static inline void ast_traverse_translate(struct ast *node,
 
 AST_DECLARE_TYPE_2(root, struct ast *variable_declaration,
                    struct ast *computation_description);
-AST_DECLARE_TYPE_2(variable_list, char const *name, struct ast *next);
+AST_DECLARE_TYPE_2(variable_list, char *name, struct ast *next);
 AST_DECLARE_TYPE_2(operator_list, struct ast *op, struct ast *next);
 
-AST_DECLARE_TYPE_2(assign, char const *name, struct ast *expr);
+AST_DECLARE_TYPE_2(assign, char *name, struct ast *expr);
 AST_DECLARE_TYPE_2(unary_operator, struct ast *expr, int type);
 AST_DECLARE_TYPE_3(binary_operator, struct ast *expr1, struct ast *expr2,
                    int type);
-AST_DECLARE_TYPE_1(identifier, char const *name);
+AST_DECLARE_TYPE_1(identifier, char *name);
 AST_DECLARE_TYPE_1(constant, int value);
 AST_DECLARE_TYPE_3(if, struct ast *condition, struct ast *if_true,
                    struct ast *if_false);
