@@ -1,0 +1,33 @@
+Var
+  a, b, c, d, e, f, g; h; i; j; k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z;
+  longvarname;
+Begin
+  longvarname := 1;
+  a := 2;
+  b := 3;
+  IF (a)
+    IF (b XOR c)
+      WHILE d AND b DO
+        IF (1)
+          longvarname := 1234;
+        ELSE
+          Begin
+            longvarname := 9876;
+            longvarname := -1234;
+            longvarname := a * b + c * d XOR (e < f) > h;
+            longvarname := 9876;
+            longvarname := 9876;
+          End
+    ELSE
+      longvarname := 4321;
+    ELSE
+      WHILE d AND b DO
+        q := 7;
+  IF (7)
+  Begin
+    IF (33)
+      a := 1;
+  End
+  ELSE a := - 2 + 2 * 2;
+  b := -1 + (-2) * 3;
+End.

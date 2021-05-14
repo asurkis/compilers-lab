@@ -5,3 +5,4 @@
 !lexer.l
 !parser.y
 !Makefile
+!program.in

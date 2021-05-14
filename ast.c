@@ -1,4 +1,5 @@
 #include "ast.h"
+#include "parser.tab.h"
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -8,62 +9,129 @@
   struct ast_##type *self = AST_CAST(node, struct ast_##type);
 
 #define TRAVERSE_PRINT_INDENT                                                  \
-  for (i = 0; i < 4 * indent; ++i)                                             \
-    putchar(' ');
+  for (i = 0; i < indent; ++i)                                                 \
+    fputs("|   ", stdout);
 
 #define TRAVERSE_PRINT_HEADER(type)                                            \
   AST_CAST_SELF(type)                                                          \
   int i;                                                                       \
   TRAVERSE_PRINT_INDENT;
 
-void ast_traverse_print_root(struct ast *node, int indent) {
+static void ast_traverse_print_root(struct ast *node, int indent) {
   TRAVERSE_PRINT_HEADER(root);
-  printf("var\n");
+  printf("var (\n");
   ast_traverse_print(self->variable_declaration, indent + 1);
+
+  TRAVERSE_PRINT_INDENT
+  printf(") {\n");
   ast_traverse_print(self->computation_description, indent + 1);
-  printf(".");
+
+  TRAVERSE_PRINT_INDENT
+  printf("}\n");
 }
 
-void ast_traverse_print_variable_list(struct ast *node, int indent) {
+static void ast_traverse_print_variable_list(struct ast *node, int indent) {
   TRAVERSE_PRINT_HEADER(variable_list);
   if (self->next) {
-    printf("%s,\n", self->name);
+    printf("[%s],\n", self->name);
     ast_traverse_print(self->next, indent);
   } else {
-    printf("%s;\n", self->name);
+    printf("[%s];\n", self->name);
   }
 }
 
-void ast_traverse_print_operator_list(struct ast *node, int indent) {
-  TRAVERSE_PRINT_HEADER(operator_list);
+static void ast_traverse_print_operator_list(struct ast *node, int indent) {
+  AST_CAST_SELF(operator_list);
+  ast_traverse_print(self->op, indent);
+  if (self->next)
+    ast_traverse_print(self->next, indent);
 }
 
-void ast_traverse_print_assign(struct ast *node, int indent) {
+static void ast_traverse_print_assign(struct ast *node, int indent) {
   TRAVERSE_PRINT_HEADER(assign);
+  printf("[%s] :=\n", self->name);
+  ast_traverse_print(self->expr, indent + 1);
 }
 
-void ast_traverse_print_unary_operator(struct ast *node, int indent) {
+static char *operator_type_str(int type) {
+  switch (type) {
+  case '+':
+    return "plus";
+  case '-':
+    return "minus";
+  case '*':
+    return "multiply";
+  case '/':
+    return "divide";
+  case '>':
+    return "greater than";
+  case '=':
+    return "equal";
+  case '<':
+    return "less than";
+  case T_AND:
+    return "logical and";
+  case T_OR:
+    return "logical or";
+  case T_XOR:
+    return "logical xor";
+  }
+  return "!unknown operator!";
+}
+
+static void ast_traverse_print_unary_operator(struct ast *node, int indent) {
   TRAVERSE_PRINT_HEADER(unary_operator);
+  printf("unary %s\n", operator_type_str(self->type));
+  ast_traverse_print(self->expr, indent + 1);
 }
 
 void ast_traverse_print_binary_operator(struct ast *node, int indent) {
   TRAVERSE_PRINT_HEADER(binary_operator);
+  printf("binary %s\n", operator_type_str(self->type));
+  ast_traverse_print(self->expr1, indent + 1);
+  ast_traverse_print(self->expr2, indent + 1);
 }
 
 void ast_traverse_print_identifier(struct ast *node, int indent) {
   TRAVERSE_PRINT_HEADER(identifier);
+  printf("identifier [%s]\n", self->name);
 }
 
 void ast_traverse_print_constant(struct ast *node, int indent) {
   TRAVERSE_PRINT_HEADER(constant);
+  printf("constant [%d]\n", self->value);
 }
 
 void ast_traverse_print_if(struct ast *node, int indent) {
   TRAVERSE_PRINT_HEADER(if);
+  printf("if (\n");
+  ast_traverse_print(self->condition, indent + 1);
+
+  TRAVERSE_PRINT_INDENT
+  printf(") {\n");
+  ast_traverse_print(self->if_true, indent + 1);
+
+  if (self->if_false) {
+    TRAVERSE_PRINT_INDENT
+    printf("} else {\n");
+    ast_traverse_print(self->if_false, indent + 1);
+  }
+
+  TRAVERSE_PRINT_INDENT
+  printf("}\n");
 }
 
 void ast_traverse_print_loop(struct ast *node, int indent) {
   TRAVERSE_PRINT_HEADER(loop);
+  printf("while (\n");
+  ast_traverse_print(self->condition, indent + 1);
+
+  TRAVERSE_PRINT_INDENT;
+  printf(") {\n");
+  ast_traverse_print(self->while_true, indent + 1);
+
+  TRAVERSE_PRINT_INDENT;
+  printf("}\n");
 }
 
 void ast_traverse_translate_root(struct ast *node,
@@ -203,3 +271,13 @@ AST_DEFINE_TYPE_2(loop, AST_LOOP, struct ast *, condition, struct ast *,
                   while_true);
 
 void yyerror(char *s) { fprintf(stderr, "%s\n", s); }
+
+struct ast *result;
+
+int main() {
+  int retcode = yyparse();
+  if (retcode)
+    return retcode;
+  ast_traverse_print(result, 0);
+  return 0;
+}

@@ -2,6 +2,7 @@
 #define _AST_H_
 
 struct ast;
+extern struct ast *result;
 
 enum ast_type {
   AST_ROOT,
