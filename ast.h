@@ -25,7 +25,7 @@ union ast_data {
 };
 
 struct translate_context {
-  int tmpvar_counter;
+  int register_counter;
   int label_counter;
 };
 
@@ -46,12 +46,14 @@ static inline void ast_free(struct ast *node) {
 }
 
 static inline void ast_traverse_print(struct ast *node, int indent) {
-  node->metatable->traverse_print(node, indent);
+  if (node)
+    node->metatable->traverse_print(node, indent);
 }
 
 static inline void ast_traverse_translate(struct ast *node,
                                           struct translate_context *context) {
-  node->metatable->traverse_translate(node, context);
+  if (node)
+    node->metatable->traverse_translate(node, context);
 }
 
 #define AST_DECLARE_TYPE_1(type, arg1)                                         \
