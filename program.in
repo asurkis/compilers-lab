@@ -1,7 +1,7 @@
 Var
   a, b, c, d, e, f, g; h; i; j; k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z;
   longvarname;
-Begin
+Begin /* случайный комментарий */
   longvarname := 1;
   a := 2;
   b := 3;
@@ -14,7 +14,7 @@ Begin
           Begin
             longvarname := 9876;
             longvarname := -1234;
-            longvarname := a * b + c * d XOR (e < f) > h;
+            longvarname := a * b /* комментарий в середине выражения */ + c * d XOR (e < f) > h;
             longvarname := 9876;
             longvarname := 9876;
           End

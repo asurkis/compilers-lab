@@ -26,5 +26,6 @@
   yylval.constant = atoi(yytext);
   return T_CONSTANT; }
 [ \t\n] {}
+\/\*.*\*\/ {}
 
 %%
